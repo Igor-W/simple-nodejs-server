@@ -6,9 +6,13 @@ import { UserController } from './users/users.controller';
 import { ILogger } from './logger/logger.interface';
 import { TYPES } from './types';
 import { IExeptionFilter } from './errors/exeption.filter.interface';
-import { IUserService } from './users/users.service.interface';
-import { UserService } from './users/users.service';
+import { IUsersService } from './users/users.service.interface';
+import { UsersService } from './users/users.service';
 import { IUserController } from './users/users.controller.interface';
+import { IConfigService } from './config/config.service.interface';
+import { ConfigService } from './config/config.service';
+import { PrismaService } from './database/prisma.service';
+import { UsersRepository } from './users/users.repository';
 
 export interface IBootstrapReturn {
 	appContainer: Container;
@@ -22,14 +26,17 @@ export interface IBootstrapReturn {
 // );
 // await app.init();
 export const appBindings = new ContainerModule((bind: interfaces.Bind) => {
-	bind<ILogger>(TYPES.ILogger).to(LoggerService);
-	bind<IExeptionFilter>(TYPES.ExeptionFilter).to(ExeptionFilter);
-	bind<IUserController>(TYPES.UserController).to(UserController);
-	bind<IUserService>(TYPES.UserService).to(UserService);
+	bind<ILogger>(TYPES.ILogger).to(LoggerService).inSingletonScope();
+	bind<IExeptionFilter>(TYPES.ExeptionFilter).to(ExeptionFilter).inSingletonScope();
+	bind<IUserController>(TYPES.UserController).to(UserController).inSingletonScope();
+	bind<IUsersService>(TYPES.UserService).to(UsersService);
 	bind<App>(TYPES.Application).to(App);
+	bind<IConfigService>(TYPES.ConfigService).to(ConfigService).inSingletonScope();
+	bind<PrismaService>(TYPES.PrismaService).to(PrismaService).inSingletonScope();
+	bind<UsersRepository>(TYPES.UsersRepository).to(UsersRepository).inSingletonScope();
 });
 
-function bootstrap(): IBootstrapReturn {
+async function bootstrap(): Promise<IBootstrapReturn> {
 	const appContainer = new Container();
 	appContainer.load(appBindings);
 	const app = appContainer.get<App>(TYPES.Application);
@@ -45,4 +52,4 @@ function bootstrap(): IBootstrapReturn {
 // const app = appContainer.get<App>(TYPES.Application);
 //  app.init();
 
-export const { app, appContainer } = bootstrap();
+export const boot = bootstrap();
